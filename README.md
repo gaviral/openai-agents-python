@@ -166,6 +166,19 @@ make mypy   # run typechecker
 make lint   # run linter
 ```
 
+## Running the meta agent prototype
+
+`new_sub_project_3` contains a rapid prototype that listens to your microphone
+using `LiveTranscriber` and dynamically expands a catalog of tools. Launch it
+with:
+
+```bash
+python -m new_sub_project_3.main
+```
+
+The helper functions rely on `osascript`, so the prototype currently only works
+on macOS systems.
+
 ## Acknowledgements
 
 We'd like to acknowledge the excellent work of the open-source community, especially:
