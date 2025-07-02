@@ -1,191 +1,87 @@
-# OpenAI Agents SDK
+# Meta-Agent Voice Assistant
 
-The OpenAI Agents SDK is a lightweight yet powerful framework for building multi-agent workflows. It is provider-agnostic, supporting the OpenAI Responses and Chat Completions APIs, as well as 100+ other LLMs.
+A dynamic voice assistant that generates and executes functions based on natural language commands. The system automatically expands its capabilities by creating new functions on-the-fly.
 
-<img src="https://cdn.openai.com/API/docs/images/orchestration.png" alt="Image of the Agents Tracing UI" style="max-height: 803px;">
+## Features
 
-### Core concepts:
+- **Voice Control**: Speak commands naturally, and the assistant will execute them
+- **Dynamic Function Generation**: The system creates new functions as needed
+- **Self-Expanding Catalog**: The catalog of available functions grows over time
+- **Single Responsibility**: Each function follows the Single Responsibility Principle
+- **Function Composition**: Complex tasks are broken down into simpler ones
 
-1. [**Agents**](https://openai.github.io/openai-agents-python/agents): LLMs configured with instructions, tools, guardrails, and handoffs
-2. [**Handoffs**](https://openai.github.io/openai-agents-python/handoffs/): A specialized tool call used by the Agents SDK for transferring control between agents
-3. [**Guardrails**](https://openai.github.io/openai-agents-python/guardrails/): Configurable safety checks for input and output validation
-4. [**Tracing**](https://openai.github.io/openai-agents-python/tracing/): Built-in tracking of agent runs, allowing you to view, debug and optimize your workflows
+## Getting Started
 
-Explore the [examples](examples) directory to see the SDK in action, and read our [documentation](https://openai.github.io/openai-agents-python/) for more details.
+### Prerequisites
 
-## Get started
+- Python 3.9 or higher
+- macOS (for the specific function implementations)
+- OpenAI API key
+- Microphone access
 
-1. Set up your Python environment
+### Installation
 
-```
-python -m venv env
-source env/bin/activate
-```
+1. Clone this repository
+   ```bash
+   git clone https://github.com/yourusername/meta-agent-assistant.git
+   cd meta-agent-assistant
+   ```
 
-2. Install Agents SDK
+2. Create and activate a virtual environment
+   ```bash
+   uv venv
+   source .venv/bin/activate
+   ```
 
-```
-pip install openai-agents
-```
+3. Install dependencies
+   ```bash
+   uv pip install openai-agents livetranscriber
+   ```
 
-For voice support, install with the optional `voice` group: `pip install 'openai-agents[voice]'`.
+4. Set your OpenAI API key
+   ```bash
+   export OPENAI_API_KEY=your-api-key
+   ```
 
-## Hello world example
+### Running the Assistant
 
-```python
-from agents import Agent, Runner
-
-agent = Agent(name="Assistant", instructions="You are a helpful assistant")
-
-result = Runner.run_sync(agent, "Write a haiku about recursion in programming.")
-print(result.final_output)
-
-# Code within the code,
-# Functions calling themselves,
-# Infinite loop's dance.
-```
-
-(_If running this, ensure you set the `OPENAI_API_KEY` environment variable_)
-
-(_For Jupyter notebook users, see [hello_world_jupyter.py](examples/basic/hello_world_jupyter.py)_)
-
-## Handoffs example
-
-```python
-from agents import Agent, Runner
-import asyncio
-
-spanish_agent = Agent(
-    name="Spanish agent",
-    instructions="You only speak Spanish.",
-)
-
-english_agent = Agent(
-    name="English agent",
-    instructions="You only speak English",
-)
-
-triage_agent = Agent(
-    name="Triage agent",
-    instructions="Handoff to the appropriate agent based on the language of the request.",
-    handoffs=[spanish_agent, english_agent],
-)
-
-
-async def main():
-    result = await Runner.run(triage_agent, input="Hola, ¿cómo estás?")
-    print(result.final_output)
-    # ¡Hola! Estoy bien, gracias por preguntar. ¿Y tú, cómo estás?
-
-
-if __name__ == "__main__":
-    asyncio.run(main())
-```
-
-## Functions example
-
-```python
-import asyncio
-
-from agents import Agent, Runner, function_tool
-
-
-@function_tool
-def get_weather(city: str) -> str:
-    return f"The weather in {city} is sunny."
-
-
-agent = Agent(
-    name="Hello world",
-    instructions="You are a helpful agent.",
-    tools=[get_weather],
-)
-
-
-async def main():
-    result = await Runner.run(agent, input="What's the weather in Tokyo?")
-    print(result.final_output)
-    # The weather in Tokyo is sunny.
-
-
-if __name__ == "__main__":
-    asyncio.run(main())
-```
-
-## The agent loop
-
-When you call `Runner.run()`, we run a loop until we get a final output.
-
-1. We call the LLM, using the model and settings on the agent, and the message history.
-2. The LLM returns a response, which may include tool calls.
-3. If the response has a final output (see below for more on this), we return it and end the loop.
-4. If the response has a handoff, we set the agent to the new agent and go back to step 1.
-5. We process the tool calls (if any) and append the tool responses messages. Then we go to step 1.
-
-There is a `max_turns` parameter that you can use to limit the number of times the loop executes.
-
-### Final output
-
-Final output is the last thing the agent produces in the loop.
-
-1.  If you set an `output_type` on the agent, the final output is when the LLM returns something of that type. We use [structured outputs](https://platform.openai.com/docs/guides/structured-outputs) for this.
-2.  If there's no `output_type` (i.e. plain text responses), then the first LLM response without any tool calls or handoffs is considered as the final output.
-
-As a result, the mental model for the agent loop is:
-
-1. If the current agent has an `output_type`, the loop runs until the agent produces structured output matching that type.
-2. If the current agent does not have an `output_type`, the loop runs until the current agent produces a message without any tool calls/handoffs.
-
-## Common agent patterns
-
-The Agents SDK is designed to be highly flexible, allowing you to model a wide range of LLM workflows including deterministic flows, iterative loops, and more. See examples in [`examples/agent_patterns`](examples/agent_patterns).
-
-## Tracing
-
-The Agents SDK automatically traces your agent runs, making it easy to track and debug the behavior of your agents. Tracing is extensible by design, supporting custom spans and a wide variety of external destinations, including [Logfire](https://logfire.pydantic.dev/docs/integrations/llms/openai/#openai-agents), [AgentOps](https://docs.agentops.ai/v1/integrations/agentssdk), [Braintrust](https://braintrust.dev/docs/guides/traces/integrations#openai-agents-sdk), [Scorecard](https://docs.scorecard.io/docs/documentation/features/tracing#openai-agents-sdk-integration), and [Keywords AI](https://docs.keywordsai.co/integration/development-frameworks/openai-agent). For more details about how to customize or disable tracing, see [Tracing](http://openai.github.io/openai-agents-python/tracing), which also includes a larger list of [external tracing processors](http://openai.github.io/openai-agents-python/tracing/#external-tracing-processors-list).
-
-## Development (only needed if you need to edit the SDK/examples)
-
-0. Ensure you have [`uv`](https://docs.astral.sh/uv/) installed.
-
+Simply run the standalone runner script:
 ```bash
-uv --version
+./run_assistant.py
 ```
 
-1. Install dependencies
+The assistant will start listening for your voice commands. Try saying:
+- "Open Google Chrome"
+- "Create a text file on the desktop"
 
-```bash
-make sync
-```
+## How It Works
 
-2. (After making changes) lint/test
+1. The system listens for voice commands using LiveTranscriber
+2. When a command is received, it checks if it already knows how to handle it
+3. If not, it uses an LLM (via OpenAI Agents SDK) to generate the necessary functions
+4. The functions are added to the Catalog class
+5. The system reloads itself and executes the functions
+6. Over time, the Catalog grows with more capabilities
 
-```
-make tests  # run tests
-make mypy   # run typechecker
-make lint   # run linter
-```
+## Project Structure
 
-## Running the meta agent prototype
+- `new_sub_project/`: Main project module
+  - `catalog.py`: Contains the Catalog class that gets dynamically extended
+  - `simple_prototype.py`: Simplified implementation of the meta-agent
+  - `function_parser.py`: Extracts function definitions from LLM responses
+- `run_assistant.py`: Standalone runner script
+- `TESTING.md`: Guide for testing the project
 
-`new_sub_project_3` contains a rapid prototype that listens to your microphone
-using `LiveTranscriber` and dynamically expands a catalog of tools. Launch it
-with:
+## Troubleshooting
 
-```bash
-python -m new_sub_project_3.main
-```
+See the [Testing Guide](TESTING.md) for troubleshooting tips and common issues.
 
-The helper functions rely on `osascript`, so the prototype currently only works
-on macOS systems.
+## License
 
-## Acknowledgements
+This project is licensed under the MIT License - see the LICENSE file for details.
 
-We'd like to acknowledge the excellent work of the open-source community, especially:
+## Acknowledgments
 
--   [Pydantic](https://docs.pydantic.dev/latest/) (data validation) and [PydanticAI](https://ai.pydantic.dev/) (advanced agent framework)
--   [MkDocs](https://github.com/squidfunk/mkdocs-material)
--   [Griffe](https://github.com/mkdocstrings/griffe)
--   [uv](https://github.com/astral-sh/uv) and [ruff](https://github.com/astral-sh/ruff)
-
-We're committed to continuing to build the Agents SDK as an open source framework so others in the community can expand on our approach.
+- OpenAI for the Agents SDK
+- The developers of LiveTranscriber
+- The Python community for the excellent tools and libraries 

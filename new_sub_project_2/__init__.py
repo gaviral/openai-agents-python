@@ -1,1 +1,0 @@
-"""New sub project package."""

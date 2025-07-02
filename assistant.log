@@ -1,0 +1,5 @@
+2025-05-21 23:59:47,448 - __main__ - INFO - Starting LiveTranscriber...
+2025-05-21 23:59:47,448 - __main__ - INFO - Listening for voice commands. Press Ctrl+C to stop.
+2025-05-21 23:59:56,922 - deepgram.clients.common.v1.abstract_sync_websocket - ERROR - Exception in ListenWebSocketClient._process_text: no running event loop
+2025-05-21 23:59:56,922 - deepgram.clients.common.v1.abstract_sync_websocket - ERROR - Exception in ListenWebSocketClient._process_text: no running event loop
+2025-05-21 23:59:57,536 - __main__ - INFO - LiveTranscriber stopped

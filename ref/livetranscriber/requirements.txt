@@ -1,5 +1,0 @@
-# Pinned to major versions that match today’s stable APIs while
-# still getting minor/patch updates automatically.
-deepgram-sdk>=4,<5     # v4.1.0 is current
-numpy>=1.24,<3         # 2.x is fine; guard against the future 3.0 jump
-sounddevice>=0.5,<1    # pick up 0.5.x but avoid a potential 1.x rewrite
